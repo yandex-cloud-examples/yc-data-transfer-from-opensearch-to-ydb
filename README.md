@@ -1,5 +1,3 @@
-# Название сценария
+# Миграция данных из Yandex Managed Service for OpenSearch в Yandex Managed Service for YDB с помощью Yandex Data Transfer
 
-Описание сценария и инструкция по его применению.
-
-Для практических руководств обязательна ссылка на документацию.
+С помощью сервиса [Data Transfer](https://yandex.cloud/ru/docs/data-transfer) вы можете перенести данные из кластера [Managed Service for OpenSearch](https://yandex.cloud/ru/docs/managed-opensearch) в базу данных [Managed Service for YDB](https://yandex.cloud/ru/docs/ydb). Настройка через Terraform описана в [практическом руководстве](https://yandex.cloud/ru/docs/data-transfer/tutorials/opensearch-to-ydb), необходимый для настройки конфигурационный файл [opensearch-to-ydb.tf](opensearch-to-ydb.tf) расположен в этом репозитории.
