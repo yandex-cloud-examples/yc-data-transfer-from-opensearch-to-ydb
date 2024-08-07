@@ -12,7 +12,10 @@ locals {
   # Specify these settings ONLY AFTER the cluster is created. Then run the "terraform apply" command again.
   # You should set up the source endpoint using the GUI to obtain its ID
   source_endpoint_id = "" # Set the source endpoint ID
-  transfer_enabled   = 0  # Set to 1 to enable the transfer
+  transfer_enabled   = 0  # Set to 1 to enable creation of target endpoint and transfer
+
+  # Setting for the YC CLI that allows running CLI command to activate cluster
+  profile_name = "" # Name of the YC CLI profile
 
   # The following settings are predefined. Change them only if necessary.
   network_name          = "mos-network"             # Name of the network
@@ -123,10 +126,10 @@ resource "yandex_mdb_opensearch_cluster" "opensearch-cluster" {
 
     dashboards {
       node_groups {
-        name        = "dashboards-group"
+        name             = "dashboards-group"
         assign_public_ip = true
-        hosts_count = 1
-        zone_ids    = ["ru-central1-a"]
+        hosts_count      = 1
+        zone_ids         = ["ru-central1-a"]
         subnet_ids       = [yandex_vpc_subnet.mos-subnet-a.id]
         resources {
           resource_preset_id = "s2.micro"  # 2 vCPU, 8 GB RAM
@@ -146,6 +149,7 @@ resource "yandex_mdb_opensearch_cluster" "opensearch-cluster" {
 
 resource "yandex_datatransfer_endpoint" "ydb-target" {
   description = "Target endpoint for the Managed Service for YDB"
+  count       = local.transfer_enabled
   name        = local.target_endpoint_name
   settings {
     ydb_target {
@@ -161,6 +165,9 @@ resource "yandex_datatransfer_transfer" "opensearch-ydb-transfer" {
   count       = local.transfer_enabled
   name        = local.transfer_name
   source_id   = local.source_endpoint_id
-  target_id   = yandex_datatransfer_endpoint.ydb-target.id
+  target_id   = yandex_datatransfer_endpoint.ydb-target[count.index].id
   type        = "SNAPSHOT_ONLY" # Copy all data from the source
+  provisioner "local-exec" {
+    command = "yc --profile ${local.profile_name} datatransfer transfer activate ${yandex_datatransfer_transfer.opensearch-ydb-transfer[count.index].id}"
+  }
 }
